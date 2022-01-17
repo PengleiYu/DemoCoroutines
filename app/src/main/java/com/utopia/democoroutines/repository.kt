@@ -1,5 +1,7 @@
 package com.utopia.democoroutines
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -14,19 +16,21 @@ sealed class Result<out R> {
 class LoginRepository(private val responseParser: LoginResponseParser) {
 
   // Function that makes the network request, blocking the current thread
-  fun makeLoginRequest(
+  suspend fun makeLoginRequest(
     jsonBody: String
   ): Result<LoginResponse> {
-    val url = URL(loginUrl)
-    (url.openConnection() as? HttpURLConnection)?.run {
-      requestMethod = "POST"
-      setRequestProperty("Content-Type", "application/json; utf-8")
-      setRequestProperty("Accept", "application/json")
-      doOutput = true
-      outputStream.write(jsonBody.toByteArray())
-      return Result.Success(responseParser.parse(inputStream))
+    return withContext(Dispatchers.IO) {
+      val url = URL(loginUrl)
+      (url.openConnection() as? HttpURLConnection)?.run {
+        requestMethod = "POST"
+        setRequestProperty("Content-Type", "application/json; utf-8")
+        setRequestProperty("Accept", "application/json")
+        doOutput = true
+        outputStream.write(jsonBody.toByteArray())
+        return@withContext Result.Success(responseParser.parse(inputStream))
+      }
+      return@withContext Result.Error(Exception("Cannot open HttpURLConnection"))
     }
-    return Result.Error(Exception("Cannot open HttpURLConnection"))
   }
 
   companion object {
