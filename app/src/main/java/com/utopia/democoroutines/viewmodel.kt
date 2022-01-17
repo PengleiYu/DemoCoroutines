@@ -12,7 +12,11 @@ class LoginViewModel(
   fun login(username: String, token: String) {
     viewModelScope.launch {
       val jsonBody = "{ username: \"$username\", token: \"$token\"}"
-      val result = loginRepository.makeLoginRequest(jsonBody)
+      val result = try {
+        loginRepository.makeLoginRequest(jsonBody)
+      } catch (e: Exception) {
+        Result.Error(e)
+      }
       Log.d(TAG, "login: result=$result")
       Log.d(TAG, "login: ${Thread.currentThread()}")
 //      when (result) {
