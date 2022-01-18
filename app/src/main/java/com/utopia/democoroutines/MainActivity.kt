@@ -19,7 +19,8 @@ class MainActivity : AppCompatActivity() {
       logThread()
       mainScope.launch(Dispatchers.Main) {
         logThread()
-        fetchDocs()
+//        fetchDocs()
+        fetchTwoDocs()
       }
     }
   }
@@ -37,12 +38,30 @@ class MainActivity : AppCompatActivity() {
     private const val TAG = "MainActivity"
   }
 
-  private suspend fun fetchDocs() {
-    val result = get("https://developer.android.com")
+  private suspend fun fetchTwoDocs() =
+    coroutineScope {
+//      val defer1 = async { fetchDocs(1) }
+//      val defer2 = async { fetchDocs(2) }
+//      defer1.await()
+//      defer2.await()
+      val deferList = listOf(
+        async { fetchDocs(1) },
+        async { fetchDocs(2) },
+      )
+      deferList.awaitAll()
+    }
+
+  private suspend fun fetchDocs(index: Int) {
+    val url = when (index) {
+      1 -> "https://developer.android.com"
+      else -> "https://baidu.com"
+    }
+    val result = get(url)
     show(result)
   }
 
   private fun show(result: String) {
+    Log.d(TAG, "show() called with: result = $result")
     Toast.makeText(this, result, Toast.LENGTH_SHORT).show()
   }
 
