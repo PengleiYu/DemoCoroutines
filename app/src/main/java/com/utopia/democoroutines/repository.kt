@@ -33,6 +33,17 @@ class LoginRepository(private val responseParser: LoginResponseParser) {
     }
   }
 
+  fun requestUrl(url: String): String {
+    return (URL(url).openConnection() as? HttpURLConnection)!!.run {
+      requestMethod = "POST"
+      setRequestProperty("Content-Type", "application/json; utf-8")
+      setRequestProperty("Accept", "application/json")
+      doOutput = true
+//      outputStream.write(jsonBody.toByteArray())
+      responseParser.parse(inputStream).text
+    }
+  }
+
   companion object {
     private const val loginUrl = "https://baidu.com"
   }
